@@ -45,7 +45,7 @@ def H(x):
 
 derive_secret = lambda m: H(seed + m)
 
-get_iid = lambda x : add_sum_check(b58encode(sha256(x))[:9])
+get_iid = lambda x : b58encode(sha256(x))[:12]
 
 def require_secret(secret):
 	def decorator(func):

@@ -15,6 +15,8 @@ bookmarks = Blueprint('bookmarks', __name__,
 
 table = db.table("bookmarks")
 
+#TODO : add under lattest label / mix label
+
 @bookmarks.route("/")
 def search():
 	query = request.args.get("q")
