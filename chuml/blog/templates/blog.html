@@ -1,0 +1,26 @@
+<h3>Create a new blog</h3>
+<form method="get">
+	<table>
+		<tbody>
+			<tr>
+				<td>Name:</td>
+				<td><input type="text" name="id"></td>
+			</tr>
+			<tr>
+				<td>Can edit:</td>
+				<td><input type="text" name="edit"></td>
+			</tr>
+			<tr>
+				<td>Can view:</td>
+				<td><input type="text" name="view"></td>
+			</tr>
+		</tbody>
+	</table>
+	<button type="submit">Create</button>
+</form>
+<h3>View or edit an existing blog</h3>
+<ul>
+{% for id in blogs %}
+    <li><a href="/blog/view?id={{ id }}">{{ id }}</a></li>
+{% endfor %}
+</ul>

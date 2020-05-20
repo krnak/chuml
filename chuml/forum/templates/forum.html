@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Forum</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/callout.css') }}">
+</head>
+<body>
+	<div id="board" class="container" style="max-width:700px;">
+		<h1 class="text-center mt-4">Forum Board</h1> <br>
+		<div style="position:fixed;bottom:0px;right:0px;width:100px;border: 1px solid gray">
+			<input type="checkbox" class="form-check-input" id="autoscroll">
+			autoscroll
+		</div>
+	</div>
+	<script type="text/javascript">
+		var TIME = 0;
+		var posts = {};
+		var update = function() {
+			var req = new XMLHttpRequest();
+			var path = `/forum/get?t=${TIME}&secret=${getUrlParameter("secret")}`;
+			req.open('GET', path, true);
+			req.onreadystatechange = function(e) {
+				if(req.readyState !== 4) {
+					return;
+				}
+				if ([200, 304].indexOf(req.status) === -1) {
+					console.warn('Error! XHR failed.');
+				}
+				else {
+					data = JSON.parse(e.target.responseText);
+					if(data["time"] > TIME) {
+						append_msg(data);
+						TIME = data["time"];
+						posts[data["id"]] = data;
+						hash = '#' + data["id"];
+						if ($('#autoscroll').is(":checked")) {
+							$('html, body').animate({
+								scrollTop: $(hash).offset().top
+								}, 800, function(){
+									window.location.hash = hash;
+							});
+						}
+						SetTimeout(update, 200);
+					}
+				}
+			};
+			req.send();	
+		};
+		setInterval(update, 1000);
+		append_msg = function(m) {
+			$("#board").append(
+				m["name"] != "Roger Vergauwen" ?
+				`<div id=${m["id"]} class="card mb-2">
+					<div class="card-body">
+						${get_quotation_of(m["prev"])}
+						<b>${m["name"]}</b>
+						   ${m["text"]}
+						${get_reply_link(m)}
+					</div>
+				</div>`
+				:
+				`<div id=${m["id"]} class="bs-callout bs-callout-danger">
+					${get_quotation_of(m["prev"])}
+					<b>${m["name"]}</b>
+					   ${m["text"]}
+					${get_reply_link(m)}
+				</div>`)
+		};
+		var get_quotation_of = function(id) {
+			if(id == null) {
+				return "";
+			} else if (!(id in posts)) {
+				return "";
+			} else {
+				// remove html tags
+				short = jQuery(posts[id]["text"]).text();
+				if(short.length > 180) {
+					short = short.slice(0,187)+"...";
+				}
+				return `
+					<a href="#${id}" style="color:inherit;text-decoration:none;">
+						<div class="bs-callout mb-1">
+							<i>${posts[id]["name"]}:
+							${short}</i>
+						</div>
+					</a>
+				`
+			}
+		}
+		var get_reply_link = function(m) {
+			if(!("repl" in m)) {
+				return "";
+			} else {
+				return "";/*`<p><a href=${m["repl"]}> reply </a></p>`*/
+			}
+		}
+		var getUrlParameter = function getUrlParameter(sParam) {
+			var sPageURL = window.location.search.substring(1),
+					sURLVariables = sPageURL.split('&'),
+					sParameterName,
+					i;
+
+			for (i = 0; i < sURLVariables.length; i++) {
+				sParameterName = sURLVariables[i].split('=');
+
+				if (sParameterName[0] === sParam) {
+					return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+				}
+			}
+		};
+	</script>
+</body>
+</html>
