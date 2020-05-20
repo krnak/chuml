@@ -54,7 +54,7 @@ def require_secret(secret):
 		return wrapper
 	return decorator
 
-if __name__ == __main__:
+if __name__ == "__main__":
 	s = derive_secret("crypto")
 	print("secret:", s)
 	print(" check:", check(s))
