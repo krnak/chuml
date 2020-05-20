@@ -23,16 +23,17 @@ def search():
 			return redirect(url_for("bookmarks.add", q=query[3:]))
 
 		# more sophisticated engine is comming
-		tag = query.split(" ")[0]
+		label = query.split(" ")[0]
 		matched = [(bm["time"], bm)
 			for bm  in table.values()
-			 if tag in bm["tags"]]
+			 if label in bm["labels"]]
 		matched.sort()
 		matched = [bm[1] for bm in matched]
 		return render_template("bm_results.html",
-			results=matched,tag=tag)
+			results=matched,label=label)
 
-	return redirect(url_for("search.line"))
+	return render_template("labels.html",
+		labels=all_labels())
 
 @bookmarks.route("/add")
 def add():
@@ -42,14 +43,16 @@ def add():
 		query = query.split()
 		print("[bookmarks]", query)
 		url   = query.pop()
-		tags = [tag[1:] for tag in query if tag[0] == '#']
+		if url[:4] != "http":
+			url = "https://" + url
+		labels = [label[1:] for label in query if label[0] == '#']
 		words = [word  for word in query if word[0] != '#']
 		name = " ".join(words)
 
 		bookmark = {
 			"name": name,
 			"url" : url,
-			"tags": tags,
+			"labels": labels,
 			"time": int(time.time())
 		}
 		iid = crypto.get_iid(url)
@@ -57,7 +60,14 @@ def add():
 		table[iid] = bookmark
 		table.commit()
 		return ("Bookmark</br>"
-				+name+"->"+url
-				+"</br>with tags: "+str(tags)
+				+name+"-><a href="+url+">"+url+"</a>"
+				+"</br>with labels: "+str(labels)
 				+"</br>added.")
 	return "bookmark.add requires argment q"
+
+def all_labels():
+	labels = set()
+	for bm in table.values():
+		for label in bm["labels"]:
+			labels.add(label)
+	return list(labels)

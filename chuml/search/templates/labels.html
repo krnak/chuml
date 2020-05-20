@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Labels</title>
+</head>
+<body>
+	<h1>Labels</h1>
+	<ul>
+	{% for label in labels %}
+		<li>
+			<a href="/search?q=bm {{ label }}">
+				{{ label }}
+			</a>
+		</li>
+	{% endfor %}
+	</ul>
+</body>
+</html>
