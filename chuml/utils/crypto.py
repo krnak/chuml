@@ -21,7 +21,7 @@ def b58encode(b):
 		
 	return "".join(arr)
 
-sum_check_char = lambda x : b58string[sum(c*pow(3,i,58) for i,c in enumerate(x)) % 58]
+sum_check_char = lambda x : b58string[sum(b58string.index(c)*pow(3,i,58) for i,c in enumerate(x)) % 58]
 add_sum_check = lambda x : x + sum_check_char(x)
 check = lambda x : x[-1] == sum_check_char(x[:-1])
 

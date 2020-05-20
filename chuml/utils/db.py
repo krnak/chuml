@@ -2,6 +2,8 @@ import json
 import os
 
 db_path = "../db"
+if not os.path.isdir(db_path):
+	db_path = "./db"
 while not os.path.isdir(db_path):
 	print("[db] path not found")
 	db_path = input("[db] enter db path:")
