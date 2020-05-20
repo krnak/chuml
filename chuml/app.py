@@ -7,6 +7,7 @@ from auth.auth import auth
 from blog.blog import blog
 from storage.storage import storage
 from forum.forum import forum
+from search.bookmarks import bookmarks
 
 from chuml.utils import db
 
@@ -17,6 +18,7 @@ app.register_blueprint(auth)
 app.register_blueprint(blog)
 app.register_blueprint(storage)
 app.register_blueprint(forum)
+app.register_blueprint(bookmarks)
 
 app.secret_key = db.load_or_write("sensitive", "app_secret")
 

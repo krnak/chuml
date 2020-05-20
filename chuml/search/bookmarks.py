@@ -3,100 +3,61 @@
 from flask import Flask, request, redirect, \
 				  url_for, render_template, \
 				  Blueprint
+import time
+import json
 
 from chuml.utils import db
-import db
-import parse
-from parse import key_char, whitespace
+from chuml.utils import crypto
+
 bookmarks = Blueprint('bookmarks', __name__,
 	template_folder='templates',
 	url_prefix="/bookmarks")
-engines = db.table("bookmarks")
 
-class MatchPattern:
-	def matchs(tags):
-		raise NotImplementedError
-	def __repr__(self):
-		return self.__str__()
-
-class MatchOr(MatchPattern):
-	def __init__(self, patterns):
-		self.patterns = patterns
-	def matchs(tags):
-		for p in patterns:
-			if p.matchs(tags):
-				return True
-		else:
-			return False
-	def __str__(self):
-		return "(" + " | ".join(self.patterns) + ")"
-
-class MatchTag(MatchPattern):
-	def __init__(self, tag):
-		self.tag = tag
-	def fit(tags):
-		return self.tag in tags
-	def __str__(self):
-		return str(self.tag)
-
-class MatchAnd(MatchPattern):
-	def __init__(self, patterns):
-		self.patterns = patterns
-	def matchs(tags):
-		for p in patterns:
-			if not p.matchs(tags):
-				return False
-		else:
-			return True
-	def __str__(self):
-		return "(" + " & ".join(self.patterns) + ")"
-
-class MatchNot(MatchPattern):
-	def __init__(self, pattern):
-		self.pattern = pattern
-	def matchs(tags):
-		return not self.pattern.match(tags)
-	def __str__(self):
-		return "not "+str(self.pattern)
-
-
-tag = (key_char("#") | key_char("x")) + parse.url_word
-
-and_symb = parse.key_word("and") | parse.key_char("|")
-or_symb  = parse.key_word("or")  | parse.key_char("&")
-not_symb = parse.key_word("not") | parse.key_char("-")
-
-and_delim = whitespace + and_symb + whitespace
-or_delim  = whitespace +  or_symb + whitespace
-
-and_group = tag.delimited(and_delim)
-or_group  = tag.delimited( or_delim)
-
-group = and_group | or_group | tag
-
-@parse.parser
-def pattern_parser(s):
-	try:
-		rest, x = tag.parse(s)
-	except ValueError:
-		pass
-
-
-
-comment = parse.quoted('"', parse.words(parse.not_quotes), '"')
-
+table = db.table("bookmarks")
 
 @bookmarks.route("/")
 def search():
 	query = request.args.get("q")
 	if query:
-		if query[:3] = "add":
-			return redirect(url_for(bookmarks.add, q=q[:3]))
+		if query[:3] == "add":
+			return redirect(url_for("bookmarks.add", q=query[3:]))
 
+		# more sophisticated engine is comming
+		tag = query.split(" ")[0]
+		matched = [(bm["time"], bm)
+			for bm  in table.values()
+			 if tag in bm["tags"]]
+		matched.sort()
+		matched = [bm[1] for bm in matched]
+		return render_template("bm_results.html",
+			results=matched,tag=tag)
 
-	else:
-		return "Command line will be here..."
+	return redirect(url_for("search.line"))
 
 @bookmarks.route("/add")
 def add():
-	pass
+	query = request.args.get("q")
+	# TODO: add override warning
+	if query:
+		query = query.split()
+		print("[bookmarks]", query)
+		url   = query.pop()
+		tags = [tag[1:] for tag in query if tag[0] == '#']
+		words = [word  for word in query if word[0] != '#']
+		name = " ".join(words)
+
+		bookmark = {
+			"name": name,
+			"url" : url,
+			"tags": tags,
+			"time": int(time.time())
+		}
+		iid = crypto.get_iid(url)
+
+		table[iid] = bookmark
+		table.commit()
+		return ("Bookmark</br>"
+				+name+"->"+url
+				+"</br>with tags: "+str(tags)
+				+"</br>added.")
+	return "bookmark.add requires argment q"
