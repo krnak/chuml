@@ -106,6 +106,9 @@ def line():
 		elif keyword == "bm":
 			exp = " ".join(query.split()[1:])
 			return redirect(url_for("bookmarks.search",q=exp))
+		elif keyword == "lb":
+			exp = " ".join(query.split()[1:])
+			return redirect(url_for("labels.search",q=exp))
 		else:
 			exp = query
 			engine_name = "g"

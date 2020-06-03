@@ -7,13 +7,16 @@ from flask import Flask, request, redirect, \
 
 from chuml.utils import db
 from chuml.auth import auth
+from chuml.utils import crypto
 from flask_login import current_user, login_required
 
 storage = Blueprint('storage', __name__,
 	#template_filepath='templates',
-	url_prefix='/storage')
+	url_prefix='/storage',
+	template_folder='templates',
+	static_folder="../db/storage")
 files_meta = db.table('files_meta')
-root = "../web_db/storage/"
+root = "../db/storage/"
 
 @storage.route('/')
 def search():
@@ -99,6 +102,14 @@ def upload():
 	</form>
 	'''
 
+@storage.route('/video')
+def video():
+	query = request.args.get("q")
+	if not query:
+		return "q argument required."
+
+	return render_template("video.html", path=query) 
+
 @storage.route('/', defaults={'path': ''})
 @storage.route('/<path:path>')
 def download(path):
@@ -109,17 +120,20 @@ def download(path):
 	if filepath:
 		if not secure_path(filepath):
 			return path + " is invalid path"
-	if not path in files_meta:
-		return filepath + " does not exist"
 
-	access = auth.rights(current_user,
-		files_meta[path]["access_policy"])
-	if not access["view"]:
-		return "access denied"
+	#if not path in files_meta:
+	#	return filepath + " does not exist"
+
+	#access = auth.rights(current_user,
+	#	files_meta[path]["access_policy"])
+	#if not access["view"]:
+	#	return "access denied"
+
+	show = request.args.get("show")=="True"
 
 	try:
 		return send_from_directory(
-			root + filepath, filename, as_attachment=True)
+			root + filepath, filename, as_attachment=(not show))
 	except FileNotFoundError:
 		abort(404)
 

@@ -8,6 +8,7 @@ import json
 
 from chuml.utils import db
 from chuml.utils import crypto
+from chuml.search import labels
 
 bookmarks = Blueprint('bookmarks', __name__,
 	template_folder='templates',
@@ -26,16 +27,19 @@ def search():
 
 		# more sophisticated engine is comming
 		label = query.split(" ")[0]
-		matched = [(bm["time"], bm)
-			for bm  in table.values()
+		# what if label dont exists?
+		matched = [bm
+			for  bm   in table.values()
 			 if label in bm["labels"]]
-		matched.sort()
-		matched = [bm[1] for bm in matched]
+		matched.sort(key=lambda x: x["time"])
 		return render_template("bm_results.html",
-			results=matched,label=label)
+			bookmarks=matched,
+			label=label,
+			labels=labels.sublabels_of(label),
+			backs=labels.upperlabels_of(label)
+			)
 
-	return render_template("labels.html",
-		labels=all_labels())
+	return redirect(url_for("search.line"))
 
 @bookmarks.route("/add")
 def add():
@@ -51,25 +55,31 @@ def add():
 		words = [word  for word in query if word[0] != '#']
 		name = " ".join(words)
 
-		bookmark = {
-			"name": name,
-			"url" : url,
-			"labels": labels,
-			"time": int(time.time())
-		}
-		iid = crypto.get_iid(url)
+		internal_add(name,url,labels)
 
-		table[iid] = bookmark
-		table.commit()
 		return ("Bookmark</br>"
 				+name+"-><a href="+url+">"+url+"</a>"
 				+"</br>with labels: "+str(labels)
 				+"</br>added.")
 	return "bookmark.add requires argment q"
 
-def all_labels():
-	labels = set()
-	for bm in table.values():
-		for label in bm["labels"]:
-			labels.add(label)
-	return list(labels)
+def internal_add(name, url, lbs=None, t=None):
+	if lbs == None:
+		lbs = []
+	if t == None:
+		t = int(time.time())
+
+	bookmark = {
+		"name": name,
+		"url" : url,
+		"labels": lbs,
+		"time": t
+	}
+
+	iid = crypto.get_iid(url)
+
+	table[iid] = bookmark
+	table.commit()
+
+	for lb in lbs:
+		labels.internal_add(lb)

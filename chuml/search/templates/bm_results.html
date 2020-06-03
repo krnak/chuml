@@ -6,10 +6,30 @@
 <body>
 	<h1>#{{ label }}</h1>
 	<ul>
-	{% for bm in results %}
+	{% for label in labels %}
+		<li>
+			<a href="/search?q=bm {{ label }}">
+				#{{ label }}
+			</a>
+		</li>
+	{% endfor %}
+	{% if labels and bookmarks %}
+		<li>-------------------</li>
+	{% endif %}
+	{% for bm in bookmarks %}
 		<li>
 			<a href="{{ bm['url'] }}">
-				{{ bm["name"] }} -> {{ bm["url"] }}
+				{{ bm["name"] }}{# -> {{ bm["url"] }}#}
+			</a>
+		</li>
+	{% endfor %}
+	{% if bookmarks and backs %}
+		<li>-------------------</li>
+	{% endif %}
+	{% for bk in backs %}
+		<li>
+			<a href="/search?q=bm {{ bk }}">
+				<- #{{ bk }}
 			</a>
 		</li>
 	{% endfor %}
