@@ -6,12 +6,14 @@
 <body>
 	<h1>Labels</h1>
 	<ul>
-	{% for label in labels %}
+	{% for label in labels.values() %}
+		{% if rights(label["access_policy"])["view"] %}
 		<li>
-			<a href="/search?q=bm {{ label }}">
-				#{{ label }}
+			<a href="/search?q=bm {{ label['name'] }}">
+				{{ signed(label) }}
 			</a>
 		</li>
+		{% endif %}
 	{% endfor %}
 	</ul>
 </body>

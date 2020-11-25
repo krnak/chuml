@@ -4,12 +4,12 @@
 	<title>Bookmarks</title>
 </head>
 <body>
-	<h1>#{{ label }}</h1>
+	<h1>{{signed(label)}}</h1>
 	<ul>
 	{% for label in labels %}
 		<li>
-			<a href="/search?q=bm {{ label }}">
-				#{{ label }}
+			<a href="/search?q=bm {{ label['name'] }}">
+				{{ signed(label) }}
 			</a>
 		</li>
 	{% endfor %}
@@ -28,8 +28,8 @@
 	{% endif %}
 	{% for bk in backs %}
 		<li>
-			<a href="/search?q=bm {{ bk }}">
-				<- #{{ bk }}
+			<a href="/search?q=bm {{ bk['name'] }}">
+				<- {{ signed(bk) }}
 			</a>
 		</li>
 	{% endfor %}

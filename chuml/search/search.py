@@ -109,6 +109,10 @@ def line():
 		elif keyword == "lb":
 			exp = " ".join(query.split()[1:])
 			return redirect(url_for("labels.search",q=exp))
+		elif keyword == "a":
+			blogid = query.split(" ")[1]
+			line = " ".join(query.split()[2:])
+			return redirect(url_for("blog.append",id=blogid,line=line))
 		else:
 			exp = query
 			engine_name = "g"

@@ -18,25 +18,18 @@ blogs = db.table('blog')
 @blog.route('/')
 def index():
     blogid = request.args.get("id")
-    if blogid and blogid.isalnum() and current_user.is_authenticated:
-        if not blogid in blogs:
-            can_edit = set(filter("".__ne__,
-            request.args.get("edit", "").split(" ")))
-
-            can_view = set(filter("".__ne__,
-                request.args.get("view", "").split(" "))).union(can_edit)
-
-            can_edit.add("@" + current_user.name)
-            blogs[blogid] = {
-                "text": "",
-                "id": blogid,
-                "author": current_user.name,
-                "access_policy": {
-                    "view": list(can_view),
-                    "edit": list(can_edit)
-                }
+    if blogid and blogid.isalnum() and current_user.is_authenticated and not blogid in blogs:
+        blogs[blogid] = {
+            "text": "",
+            "id": blogid,
+            "author": current_user.name,
+            "access_policy": {
+                "view": ['@'+current_user.name],
+                "edit": ['@'+current_user.name]
             }
-            blogs.commit()
+        }
+        blogs.commit()
+
         return redirect(url_for("blog.edit", id=blogid))
     else:
         return render_template('blog.html', blogs=blogs)
@@ -47,7 +40,7 @@ def edit():
     if blogid == None:
         return redirect(url_for('blog.index'))
     
-    user_can = auth.rights(current_user, blogs[blogid]["access_policy"])
+    user_can = auth.rights(blogs[blogid]["access_policy"])
     
     if blogid in blogs and user_can["edit"]:
         if request.args.get("action") == "view":
@@ -71,8 +64,7 @@ def view():
 
     if blogid in blogs:
         blogg = blogs[blogid]
-        print("user:",current_user)
-        user_can = auth.rights(current_user, blogg["access_policy"])
+        user_can = auth.rights(blogg["access_policy"])
         if user_can["view"]:
             content = markdown(blogs[blogid]["text"],
                 extensions=["tables"])
@@ -94,6 +86,31 @@ def view():
             else:
                 return head + content + tail
         else:
+            flash("Permission denied.")
             return redirect(url_for('blog.index'))
     else:
         return redirect(url_for('blog.index'))
+
+@blog.route('/append')
+def append():
+    blogid = request.args.get('id')
+
+    if not blogid in blogs:
+        flash("Blog " + blogid + " does not exist.")
+        return redirect(url_for('blog.index'))
+    
+    user_can = auth.rights(blogs[blogid]["access_policy"])
+    if not user_can["edit"]:
+        flash("Permission denied.")
+        return redirect(url_for('blog.index'))
+
+    line = request.args.get('line')
+    if line == None:
+        flash("`line` arg required.")
+        return redirect(url_for('blog.index'))
+    
+    blogs[blogid]["text"] += "  \n" + line
+    blogs.commit()
+
+    return redirect(url_for("blog.view", id=blogid))
+

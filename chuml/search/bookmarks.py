@@ -3,22 +3,28 @@
 from flask import Flask, request, redirect, \
 				  url_for, render_template, \
 				  Blueprint
+from flask_login import login_required, current_user
+
 import time
 import json
 
 from chuml.utils import db
 from chuml.utils import crypto
 from chuml.search import labels
+from auth.auth import rights
 
 bookmarks = Blueprint('bookmarks', __name__,
 	template_folder='templates',
 	url_prefix="/bookmarks")
 
 table = db.table("bookmarks")
+labels_table = db.table("labels")
 
 #TODO : add under lattest label / mix label
-
+iids_to_labels = lambda x : [db.table("labels")[iid]
+							 for iid in x]
 @bookmarks.route("/")
+@login_required
 def search():
 	query = request.args.get("q")
 	if query:
@@ -26,22 +32,29 @@ def search():
 			return redirect(url_for("bookmarks.add", q=query[3:]))
 
 		# more sophisticated engine is comming
-		label = query.split(" ")[0]
-		# what if label dont exists?
+		# how about other users???
+		label = current_user.name+':'+query.split(" ")[0]
+		if not label in labels_table:
+			return "Label #" + label + " not found."
+
 		matched = [bm
 			for  bm   in table.values()
 			 if label in bm["labels"]]
 		matched.sort(key=lambda x: x["time"])
+
 		return render_template("bm_results.html",
 			bookmarks=matched,
-			label=label,
-			labels=labels.sublabels_of(label),
-			backs=labels.upperlabels_of(label)
-			)
+			label=db.table("labels")[label],
+			labels=iids_to_labels(labels.sublabels_of(label)),
+			backs=iids_to_labels(labels.upperlabels_of(label)),
+			rights=rights,
+			signed=labels.signed
+		)
 
 	return redirect(url_for("search.line"))
 
 @bookmarks.route("/add")
+@login_required
 def add():
 	query = request.args.get("q")
 	# TODO: add override warning
@@ -63,7 +76,7 @@ def add():
 				+"</br>added.")
 	return "bookmark.add requires argment q"
 
-def internal_add(name, url, lbs=None, t=None):
+def internal_add(name, url, author, lbs=None, t=None):
 	if lbs == None:
 		lbs = []
 	if t == None:
@@ -73,13 +86,15 @@ def internal_add(name, url, lbs=None, t=None):
 		"name": name,
 		"url" : url,
 		"labels": lbs,
-		"time": t
+		"time": t,
+		"author": author,
+		"access_policy": {
+			"edit":['@'+author],
+			"view":['@'+author]
+		}
 	}
 
-	iid = crypto.get_iid(url)
+	iid = crypto.get_iid(url+author+name)
 
 	table[iid] = bookmark
 	table.commit()
-
-	for lb in lbs:
-		labels.internal_add(lb)
