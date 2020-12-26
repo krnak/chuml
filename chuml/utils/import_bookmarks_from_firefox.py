@@ -11,14 +11,15 @@ from_firefox_label = labels.internal_add("_from_firefox", author)
 def add_node(node,parrent=None):
 	label = None
 	name = node["title"].replace(' ', '_')
-	if name:
-		t    = node["lastModified"]//1000
-		if parrent:
-			label = labels.internal_add(name,author,[parrent],t=t)
-		else:
-			label = labels.internal_add(name,author,t=t)
+	if not name:
+		name = "no_name"
+		
+	t    = node["lastModified"]//1000
+	if parrent:
+		label = labels.internal_add(name,author,[parrent],t=t)
 	else:
-		raise ValueError("no title")
+		label = labels.internal_add(name,author,t=t)
+		#raise ValueError("no title")
 
 	print("======",label.__repr__(),"=======")
 
@@ -44,6 +45,6 @@ def add_leaf(leaf, parrent):
 	bookmarks.internal_add(name,uri,author,[parrent,from_firefox_label],t)
 
 if __name__ == "__main__":
-	with open("/home/agi/Downloads/bookmarks-2020-05-21.json") as file:
+	with open("/home/agi/backups/bookmarks-2020-12-26.json") as file:
 		firefox = json.load(file)
 	add_node(firefox)
