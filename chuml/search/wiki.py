@@ -1,11 +1,11 @@
 import os
 import re
 import html
+from chuml.core import config
 
-wiki_path = "/home/agi/code/wiki"
 files = list(filter(
 	lambda x: not x.startswith('.'),
-	os.listdir(wiki_path)
+	os.listdir(config.wiki_path)
 ))
 
 def search(expresion):

@@ -2,12 +2,17 @@
 
 ## small TODO:
 
-rename file hiearchy  
+rename file hiearchy
+- core folder
+- utils to app
+- templates subfolders
 create config
 change forms
-access froms
-labels form
+access forms
+labels forms
 wtf forms imtegration
+
+python-secrets integration
 
 ## big TODO:
 
