@@ -36,24 +36,28 @@
                 Logout
             </a>
             {% endif %}
+
+            
             <a href="{{ url_for('search.line') }}" class="navbar-item">
                 Search
             </a>
-            <a href="{{ url_for('forum.board') }}" class="navbar-item">
+            {#<a href="{{ url_for('forum.board') }}" class="navbar-item">
                 Forum
+            </a>#}
+            <a href="{{ url_for('notes.index') }}"  class="navbar-item">
+                Notes
             </a>
-            <a href="{{ url_for('blog.index') }}" class="navbar-item">
-                Blog
-            </a>
-            <a href="{{ url_for('storage.search') }}" class="navbar-item">
+            {#<a href="{{ url_for('storage.search') }}" class="navbar-item">
                 Storage
-            </a>
-            <a href="{{ url_for('labels.search') }}" class="navbar-item">
+            </a>#}
+            <a href="{{ url_for('labels.index') }}" class="navbar-item">
                 Labels
             </a>
-            <a href="{{ url_for('bookmarks.search') }}" class="navbar-item">
+            {#<a href="{{ url_for('bookmarks.index') }}" class="navbar-item">
                 Bookmarks
-            </a>
+            </a>#}
+            
+            
         </div>
         <div>
         {% with messages = get_flashed_messages() %}

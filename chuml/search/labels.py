@@ -2,7 +2,7 @@
 
 from flask import Flask, request, redirect, \
 				  url_for, render_template, \
-				  Blueprint
+				  Blueprint, flash
 from flask_login import login_required, current_user
 
 import time
@@ -10,34 +10,33 @@ import json
 
 from chuml.utils import db
 from chuml.utils import crypto
-from chuml.auth import auth
+from chuml.auth  import access
+from chuml.models import Label
 
 labels = Blueprint('labels', __name__,
 	template_folder='templates',
-	url_prefix="/labels")
-
-labels_table = db.table("labels")
+	url_prefix="/label")
 
 @labels.route("/")
 @login_required
-def search():
-	query = request.args.get("q")
-	if query:
-		if query[:3] == "add":
-			return redirect(url_for("labels.add", q=query[3:]))
+def index():
+	q = request.args.get("q", default="")
+	search_set = db.query(Label).filter(
+		Label.name.like("%{}%".format(q))
+	).all()
 
-		# more sophisticated engine is comming
-		# label_part = query.split(" ")[0]
-		# matched = [label
-		#	for label in labels_table.values()
-		#	 if label_part in label]
-		# matched.sort()
-		return "Not implemented." #render_template("bm_results.html",
-		#	results=matched,label=label)
+	accessible_labels = [ p for p in search_set
+						if access.access(p) >= access.VIEW]
+
+	if not accessible_labels:
+		return "No labels found."
+
+	if len(accessible_labels) == 1:
+		return redirect(url_for("labels.view",
+			id=accessible_labels[0].id))
 
 	return render_template("labels.html",
-		labels=labels_table,rights=auth.rights,
-		current_user_name=current_user.name,
+		labels=accessible_labels,
 		signed=signed
 		)
 
@@ -50,60 +49,131 @@ def add():
 		print("[labels]", query)
 		query  = query.split()
 		name   = query[0]
-		labels = query[1:] 
+		labels = query[1:]
 
-		internal_add(label, current_user.name, labels)
+		# TODO: add double dot feature
+		labels = [ l for l in db.query(Label).filter_by(author=current_user).all()
+			if l.name in labels
+		]
+		internal_add(name, current_user, labels)
 
 		return ("Label</br>"
 				+'#'+name
-				+"</br>with labels: "+str(labels)
+				+"</br>with labels: "+", ".join(map(signed,labels))
 				+"</br>added.")
 	return "bookmark.add requires argment q"
 
-def internal_add(name,author,labels=None,t=None):
+#TODO : add under lattest label / mix label
+
+@labels.route("/<id>")
+@login_required
+def view(id=0):
+	label = db.query(Label).get(id)
+	if not label:
+		flash("Label {} not found.".format(id))
+		return redirect(url_for('labels.index'))
+	
+	if access.access(label) < access.VIEW:
+		return access.forbidden_page()
+
+	# TODO: SQL filtering
+	labeled = [ i for i in label.labeling
+				if access.access(i) >= access.VIEW ]
+
+	bms  = [i for i in labeled if i.type == "bookmark"]
+	lbls = [i for i in labeled if i.type == "label"]
+
+	bms.sort( key=lambda x: x.created_timestamp)
+	lbls.sort(key=lambda x: x.created_timestamp)
+
+	return render_template("bm_results.html",
+		bookmarks=bms,
+		label =label,
+		labels=lbls,           #VIEW RIGHTS
+		backs =label.labels,   #VIEW RIGHTS
+		signed=signed
+	)
+
+@labels.route("/<id>/edit", methods=["GET"])
+@login_required
+def edit_get(id=0):
+	label = db.query(Label).get(id)
+	if not label:
+		flash("Label {} not found.".format(id))
+		return redirect(url_for('labels.index'))
+	
+	if access.access(label) < access.EDIT:
+		return access.forbidden_page()
+
+	return render_template("edit_label.html",
+		label=label
+		)
+
+@labels.route("/<id>/edit", methods=["POST"])
+@login_required
+def edit_post(id=0):
+	label = db.query(Label).get(id)
+	if not label:
+		return "label {} not found".format(id)
+	
+	if access.access(label) < access.EDIT:
+		return "access forbidden to {}".format(id)
+
+	try:
+		action = get_arg("action")
+		if   action == "set_name":
+			label.name = get_arg("name")
+			db.commit()
+			return "success: name set"
+		elif action == "delete":
+			label.labels.clear()
+			db.delete(label)
+			db.commit()
+			return "success: deleted"
+		else:
+			return "nothing done"
+	except Exception as e:
+		print("===== labels =====")
+		print(e)
+		print("==================")
+		db.rollback()
+		return str(e)
+
+def get_arg(name):
+	arg = request.form.get(name)
+	if not arg:
+		raise ValueError("argument `{}` required".format(name))
+	return arg
+
+
+def internal_add(name,author,labels=[],t=None):
 	if t == None:
 		t = int(time.time())
-	if not labels:
-		labels = []
-	#if ':' in name:
-	#	print(name)
 
-	iid = author+':'+name
-
-	if iid in labels_table.keys():
-		label = labels_table[iid]
-		label["labels"] = list(
-			set(label["labels"]) | set(labels)
-		)
-		labels_table.commit()
+	if db.query(Label).filter_by(name=name,author=author).all():
+		label = db.query(Label).filter_by(name=name,author=author).first()
 	else:
-		label = {
-			"name": name,
-			"labels": labels,
-			"author": author,
-			"access_policy": {
-				"edit":['@'+author],
-				"view":['@'+author]
-			},
-			"time": t
-		}
+		label = Label(
+			name=name,
+			author=author,
+			created_timestamp=t,
+			updated_timestamp=t
+		)
+		db.add(label)
 
-		labels_table[iid] = label
-		labels_table.commit()
+	for l in labels:
+		if not l in label.labels:
+			label.labels.append(l)
+	db.commit()
 
-
-def sublabels_of(iid):
-	return [k for k,v in labels_table.items()
-		if iid in v["labels"]
-		and v["name"][0] != '_']
-
-def upperlabels_of(iid):
-	return [ lb for lb
-				in labels_table[iid]["labels"]
-				if lb.split(':')[1][0] != '_']
+	return label
 
 def signed(label):
-	if label["author"] == current_user.name:
-		return '#'+label["name"]
+	# .id ==
+	if label.author == current_user:
+		return '#'+label.name
 	else:
-		return '#'+label["author"]+':'+label["name"]
+		return '#'+label.author.name+':'+label.name
+
+def users_labels():
+	return db.query(Label).filter_by(author=current_user).all()

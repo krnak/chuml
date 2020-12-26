@@ -4,11 +4,16 @@
 	<title>Bookmarks</title>
 </head>
 <body>
-	<h1>{{signed(label)}}</h1>
+	<h1>{{signed(label) -}}
+	{%- if can_edit(label) -%}
+	<a href="/label/{{ label.id }}/edit" style="color:inherit;
+  text-decoration: none;"> &#x270F;</a>
+	{%- endif -%}
+	</h1>
 	<ul>
 	{% for label in labels %}
 		<li>
-			<a href="/search?q=bm {{ label['name'] }}">
+			<a href="/label/{{ label.id }}">
 				{{ signed(label) }}
 			</a>
 		</li>
@@ -18,8 +23,8 @@
 	{% endif %}
 	{% for bm in bookmarks %}
 		<li>
-			<a href="{{ bm['url'] }}">
-				{{ bm["name"] }}{# -> {{ bm["url"] }}#}
+			<a href="{{ bm.url }}">
+				{{ bm.name }}
 			</a>
 		</li>
 	{% endfor %}
@@ -28,7 +33,7 @@
 	{% endif %}
 	{% for bk in backs %}
 		<li>
-			<a href="/search?q=bm {{ bk['name'] }}">
+			<a href="/label/{{ bk.id }}">
 				<- {{ signed(bk) }}
 			</a>
 		</li>

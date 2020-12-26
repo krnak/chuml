@@ -1,0 +1,26 @@
+{% import "utils/forms.html" as forms %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>edit {{note.name}}</title>
+	{{ forms.tagify_head() }}
+</head>
+<body>
+	<div style="text-align: center;">
+		<form method="get">
+
+			<textarea name="text" rows="50" cols="100" style="border:none;">{{note.text}}</textarea>
+			<br>
+			name: <input type="text"   name="name"   value="{{note.name}}">
+			<br>
+			<input type="submit" name="action" value="save">
+			<input type="submit" name="action" value="view">
+			<br>
+			<div style="padding-top: 10px;"></div>
+			<input type="submit" name="action" value="delete">
+		</form>
+		<br>
+		{{ forms.labels_field(note) }}
+	</div>
+</body>
+</html>

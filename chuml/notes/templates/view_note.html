@@ -1,0 +1,30 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <title>{{note.name}}</title>
+    <style>
+        .container {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 30px;
+            box-shadow: 0 0px 40px 0 rgba(0, 0, 0, 0.5);
+            width:800px;
+            {# clip-path: inset(0px -40px 0px -40px); #}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="padding: 10px 30px 10px 30px;">
+            <article>
+                {{ rendered | safe}}
+            </article>
+            <footer>
+                {% if can_edit(note) %}
+                <form action="/note/{{ note.id }}/edit">
+                    <input type="submit" value="edit" />
+                </form>
+                {% endif %}
+            </footer>
+        </div>
+    </div>
+</body>

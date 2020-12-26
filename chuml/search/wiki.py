@@ -2,16 +2,17 @@ import os
 import re
 import html
 
+wiki_path = "/home/agi/code/wiki"
 files = list(filter(
 	lambda x: not x.startswith('.'),
-	os.listdir('../../wiki')
-	))
+	os.listdir(wiki_path)
+))
 
 def search(expresion):
 	exp = re.compile(expresion)
 	document = ['<div class=grep-block>']
 	for file_name in files:
-		file = open("../../wiki/" + file_name)
+		file = open(wiki_path + "/" + file_name)
 		for i, line in enumerate(file.readlines()):
 			results = list(exp.finditer(line))
 			if results:

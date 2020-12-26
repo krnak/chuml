@@ -1,3 +1,40 @@
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, \
+					Boolean, DateTime, Float, \
+					Table, ForeignKey, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship, backref
+
+from chuml.core import config
+# engine = sqlalchemy.create_engine('sqlite:///:memory:', echo=True)
+engine = sqlalchemy.create_engine(config.db_path , echo=True)
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+session = Session()
+
+"""
+class User(Base):
+	__tablename__ = 'test_users'
+	id = Column(Integer, primary_key=True)
+	name = Column(String)
+	def __repr__(self):
+		return "<User(name='%s')>" % self.name
+"""
+#session.add(User(name="Novak"))
+#session.commit()
+
+# Wrappers
+commit   = session.commit
+add      = session.add
+query    = session.query
+delete   = session.delete
+rollback = session.rollback
+
+def init():
+	Base.metadata.create_all(engine)
+
+
+"""
 import json
 import os
 
@@ -34,7 +71,7 @@ def table(table_name):
 		return table
 
 def load_or_write(table_name, key):
-	"""Pokusi se nacist hodnotu z db. Pokud selze, nacte ji z cmd."""
+	#Pokusi se nacist hodnotu z db. Pokud selze, nacte ji z cmd.
 	table_ref = table(table_name)
 	try:
 		return table_ref[key]
@@ -48,3 +85,4 @@ def load_or_write(table_name, key):
 def log(msg):
 	with open(db_path + "/log.txt", "a") as file:
 		file.write(msg + "\n")
+"""

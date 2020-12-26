@@ -1,43 +1,49 @@
 import json
+from chuml.auth import auth
 from chuml.search import bookmarks
 from chuml.search import labels
-import db
+from chuml.utils import db
 
 #db.db_path = "../../db"
-author = "agi"
+author = db.query(auth.User).filter_by(name="agi").first()
+from_firefox_label = labels.internal_add("_from_firefox", author)
 
-def add_node(node,parrent_name=None):
+def add_node(node,parrent=None):
+	label = None
 	name = node["title"].replace(' ', '_')
 	if name:
 		t    = node["lastModified"]//1000
-		if parrent_name:
-			labels.internal_add(name,author,[author+':'+parrent_name],t=t)
+		if parrent:
+			label = labels.internal_add(name,author,[parrent],t=t)
 		else:
-			labels.internal_add(name,author,t=t)
+			label = labels.internal_add(name,author,t=t)
+	else:
+		raise ValueError("no title")
+
+	print("======",label.__repr__(),"=======")
 
 	if not "children" in node:
 		return
-	if ':' in name:
-		print(name)
+
 	for c in node["children"]:
 		if c["typeCode"] == 2: # node
-			add_node(c,name)
+			add_node(c,label)
 		elif c["typeCode"] == 1: # leaf
-			add_leaf(c,name)
+			add_leaf(c,label)
 
 
-def add_leaf(leaf, parrent_name):
-	name = leaf["title"].replace(' ', '_')
+def add_leaf(leaf, parrent):
+	name = leaf["title"]
 	t    = leaf["lastModified"]//1000
 	iid  = leaf["guid"]
 	uri  = leaf["uri"]
-	if not parrent_name:
-		raise ValueError("No parrent name.")
+	if not parrent:
+		raise ValueError("No parrent.")
 
-	bookmarks.internal_add(name,uri,author,[author+':'+parrent_name,author+":_from_firefox"],t)
+	print("====== adding bm ", [name,uri,author,[parrent,from_firefox_label],t])
+	bookmarks.internal_add(name,uri,author,[parrent,from_firefox_label],t)
 
 if __name__ == "__main__":
-	labels.internal_add("_from_firefox",author)
 	with open("/home/agi/Downloads/bookmarks-2020-05-21.json") as file:
 		firefox = json.load(file)
 	add_node(firefox)

@@ -1,0 +1,3 @@
+db_path: sqlite:////home/agi/code/chuml/db/database.db
+admin_pasw: kkk
+guest_pasw: kkk

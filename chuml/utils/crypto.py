@@ -1,13 +1,15 @@
 import hashlib
 import base64
 from flask import request
+import secrets
 from secrets import token_bytes
+from chuml.utils import sensitive
 
 if __name__ == "__main__":
 	seed = "blablabla"
 else:
 	from chuml.utils import db
-	seed = db.load_or_write("sensitive", "app_secret")
+	seed = "blablabla" #sensitive.load_or_write("app_secret")
 
 sha256 = lambda m: hashlib.sha256(m.encode('utf-8')).digest()
 b64encode = base64.urlsafe_b64encode
@@ -48,6 +50,9 @@ derive_secret = lambda m: H(seed + m)
 
 get_iid        = lambda x : b58encode(sha256(x))[:12]
 get_random_iid = lambda   : b58encode(token_bytes(32))[:12]
+
+get_random_secret = lambda : "".join(
+	[secrets.choice(b58string) for _ in range(24)])
  
 def require_secret(secret):
 	def decorator(func):

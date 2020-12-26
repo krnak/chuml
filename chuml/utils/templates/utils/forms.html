@@ -1,0 +1,62 @@
+{% macro labels_field(obj, labels_whitelist) -%}
+<input name="labels" class="labels-bar"
+placeholder="write some labels"
+value="{{ obj.comma_separated_labels() }}">
+</td>
+	<script type="text/javascript">
+		var input = document.querySelector('input[name="labels"]');
+
+		var whitelist = {{ users_labels() | safe }}
+
+		var tagify = new Tagify(input, {
+			whitelist:whitelist,
+			//maxTags: 10,
+			//enforceWhitelist : true,
+			dropdown: {
+				//maxItems: 20,          
+				classname: "tags-look", 
+				enabled: 0,            
+				closeOnSelect: false   
+			},
+			callbacks        : {
+				add     : function(e) {
+					var xhttp = new XMLHttpRequest();
+					xhttp.open("POST", "/node/{{ obj.id }}/edit", false);
+					xhttp.onload = function() {
+						console.log(xhttp.responseText);
+					}
+					var data = new FormData();
+					data.append('label_name', e.detail.data.value);
+					data.append('action', 'add_label');
+					xhttp.send(data); 
+				},
+				remove  : function(e) {
+					var xhttp = new XMLHttpRequest();
+					xhttp.open("POST", "/node/{{ obj.id }}/edit", false);
+					xhttp.onload = function() {
+						console.log(xhttp.responseText);
+					}
+					var data = new FormData();
+					data.append('label_name', e.detail.data.value);
+					data.append('action', 'remove_label');
+					xhttp.send(data); 
+				},
+				//invalid : console.log
+			},
+			keepInvalidTags : true,
+			templates: {
+				dropdownItemNoMatch: function(data) {
+						return `
+								Create a new label: ${data.value}
+						`
+				}
+			}
+		})
+	</script>	
+{%- endmacro %}
+
+{% macro tagify_head() -%}
+	<script src="https://unpkg.com/@yaireo/tagify"></script>
+	<link rel="stylesheet" href="https://unpkg.com/@yaireo/tagify/dist/tagify.css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/labels_field.css') }}">
+{%- endmacro %}

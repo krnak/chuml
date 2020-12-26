@@ -1,0 +1,46 @@
+<head>
+	<title>Notes</title>
+</head>
+<body>
+<div>
+	{% with messages = get_flashed_messages() %}
+		{% if messages %}
+			<ul class="flashes">
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+	{% endwith %}    
+	</div>
+
+	<h3>Create a new note</h3>
+	<form method="get" action="{{ url_for('notes.create') }}">
+		<table>
+			<tbody>
+				<tr>
+					<td>name:</td>
+					<td><input type="text" name="name"></td>
+				</tr>
+				<tr>
+					<td>text:</td>
+					<td><input type="text" name="text"></td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="submit">create</button>
+	</form>
+
+	<h3>View or edit an existing notes</h3>
+	<ul>
+	{% for note in notes %}
+		<li><a href="/note/{{ note.id }}/view">
+		{% if note.name %}
+			{{ note.name }}
+		{% else %}
+			note-{{ note.id }}
+		{% endif %}
+		</a></li>
+	{% endfor %}
+	</ul>
+</body>

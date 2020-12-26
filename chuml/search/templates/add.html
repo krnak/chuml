@@ -4,9 +4,14 @@
 	<h1>Add search key</h1>
 	<p>{{caption}}</p>
 	<form method="get">
-		<input type="text" name="key" value="{{key}}">
-		<input type="text" name="url" value="{{url}}">
-		<input type="text" name="search" value="{{search}}">
+		<table>
+			<tbody>
+				<tr><td>key   </td><td><input type="text" name="key" value="{{key}}"></td></tr>
+				<tr><td>url   </td><td><input type="text" name="url" value="{{url}}"></td></tr>
+				<tr><td>search</td><td><input type="text" name="search" value="{{search}}"></td></tr>
+				<tr></tr>
+			</tbody>
+		</table>
 		<input type="hidden" name="force" value="{{force}}">
 		<button type="submit" title="Search">{{button}}</button>
 	</form>

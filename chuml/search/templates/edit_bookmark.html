@@ -1,0 +1,38 @@
+{% import "utils/forms.html" as forms %}
+<head>
+	<title>edit {{bm.name}}</title>
+	{{ forms.tagify_head() }}
+</head>
+<body>
+	<h1>edit #{{ bm.name }}</h1>
+		<table>
+			<tbody>
+				<tr>
+					<form method="POST">
+						<input type="hidden" name="action" value="set_name">
+						<td>name</td>
+						<td><input type="text" name="name" value="{{ bm.name }}"></td>
+						<td><button type="submit">safe</button></td>
+					</form>
+				</tr>
+				<tr>
+					<form method="POST">
+						<input type="hidden" name="action" value="set_url">
+						<td>name</td>
+						<td><input type="text" name="name" value="{{ bm.url }}"></td>
+						<td><button type="submit">safe</button></td>
+					</form>
+				</tr>
+				<tr>
+					<td>labels</td>
+					<td> {{ forms.labels_field(bm) }}
+				</tr>
+				<tr>
+					<form method="POST">
+						<input type="hidden" name="action" value="delete">
+						<td><button type="submit">delete</button></td>
+					</form>
+				</tr>
+			</tbody>
+		</table>
+</body>
