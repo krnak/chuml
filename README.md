@@ -14,6 +14,20 @@ wtf forms imtegration
 
 python-secrets integration
 
+dependencies list
+
+## Dependencies
+
+flask
+requests
+flask_login
+flask_wtf
+render markdown
+syntax coloring
+sqlalchemy
+
+secrets
+
 ## big TODO:
 
 - git

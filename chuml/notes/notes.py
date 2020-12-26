@@ -37,6 +37,7 @@ def create():
 
 
 @notes.route('/<id>/edit')
+@login_required
 def edit(id=0):
     note = db.query(Note).get(id)
     if not note:
@@ -71,6 +72,7 @@ def edit(id=0):
             )
 
 @notes.route('/<id>/view', methods=['GET'])
+@login_required
 def view(id=0):
     note = db.query(Note).get(id)
     if not note:
@@ -88,6 +90,7 @@ def view(id=0):
              user_can_edit=access.access(note) >= access.EDIT)
 
 @notes.route('/<id>/append')
+@login_required
 def append(id=0):
     note = db.query(Note).get(id)
     if not note:

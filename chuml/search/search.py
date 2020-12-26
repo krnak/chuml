@@ -1,7 +1,7 @@
 from flask import Flask, request, redirect, \
 				  url_for, render_template, \
 				  Blueprint
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from urllib.parse import quote
 
@@ -36,6 +36,7 @@ def extended_split(string):
 
 
 @search.route("/add")
+@login_required
 def add():
 	if "q" in request.args:
 		words = extended_split(request.args.get("q"))
@@ -99,6 +100,7 @@ def add():
 		)
 
 @search.route("/")
+@login_required
 def line():
 	query = request.args.get("q")
 	if not query:
