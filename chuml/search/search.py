@@ -41,12 +41,14 @@ def add():
 	if "q" in request.args:
 		words = extended_split(request.args.get("q"))
 		key,url,search = (words + 3*[""])[:3]
+		print("=======q=", [request.args.get("q"), key,url,search])
 		return redirect(url_for("search.add", key=key,url=url,search=search))
 
 	elif  "key" in request.args and request.args.get("url"):
 		key = request.args.get("key")
-		if not key.replace(" ","").replace("_","").replace("-","").isalnum():
-			return "Invalid key."
+		# why to control key?
+		#if not key.replace(" ","").replace("_","").replace("-","").isalnum():
+		#	return "Invalid key."
 
 		url = request.args.get("url")
 
@@ -108,29 +110,37 @@ def line():
 
 	words = query.split()
 	keyword = words[0]
-	if db.query(SearchEngine).filter_by(
-			key=keyword,
-			author=current_user
-		).all():
-		keyword = ""
-		engine = None
-		exp = None
-		for i,word in enumerate(words):
-			if db.query(SearchEngine).filter_by(
-				key=keyword+word,
-				author=current_user).all():
-				keyword += word
-				engine = db.query(SearchEngine).filter_by(
-					key=keyword,
-					author=current_user
-				).first()
-			else:
-				exp = " ".join(words[i:])
-		
-		if not exp:
+	exp = " ".join(words[1:])
+	engine = db.query(SearchEngine).filter_by(
+		key=keyword,
+		author=current_user
+	).one_or_none()
+	if engine:
+		"""
+		if db.query(SearchEngine).filter_by(
+				key=keyword,
+				author=current_user
+			).all():
+			keyword = ""
+			engine = None
+			exp = None
+			for i,word in enumerate(words):
+				if db.query(SearchEngine).filter_by(
+					key=keyword+word,
+					author=current_user).all():
+					keyword += word
+					engine = db.query(SearchEngine).filter_by(
+						key=keyword,
+						author=current_user
+					).first()
+				else:
+					exp = " ".join(words[i:])
+			
+			print("=======line==exp=", exp)
+		"""
+		if not exp or not engine.search:
 			return redirect(engine.url)
-
-		if engine.search:
+		else:
 			return redirect(
 				engine.search.format(query=quote(exp))
 			)
