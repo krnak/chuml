@@ -3,9 +3,11 @@ import re
 import html
 from chuml.core import config
 
+wiki_path = config.wiki_path
+
 files = list(filter(
 	lambda x: not x.startswith('.'),
-	os.listdir(config.wiki_path)
+	os.listdir(wiki_path)
 ))
 
 def search(expresion):

@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from urllib.parse import quote
 
-from chuml.search import wiki
+from chuml.search import wiki as wiki_module
 
 from chuml.utils import db
 from chuml.auth import access
@@ -62,7 +62,7 @@ def add():
 				return render_template("add.html",
 					caption = "{key} already points at {url}".format(
 						key=key,
-						url=engine.url
+						url=engine.search if engine.search else engine.url
 					),
 					key     = request.args.get("key",""),
 					url     = request.args.get("url",""),
@@ -71,6 +71,7 @@ def add():
 					button  = "Override"
 				)
 			else:
+				print("===========editing==to==",url)
 				engine.url = url
 				engine.search = request.args.get("search")
 				db.commit()
@@ -106,7 +107,7 @@ def add():
 def line():
 	query = request.args.get("q")
 	if not query:
-		return render_template("search.html")
+		return render_template("search.html", engine="")
 
 	words = query.split()
 	keyword = words[0]
@@ -138,9 +139,10 @@ def line():
 			
 			print("=======line==exp=", exp)
 		"""
-		if not exp or not engine.search:
+		if not exp:
 			return redirect(engine.url)
-		else:
+
+		if engine.search:
 			return redirect(
 				engine.search.format(query=quote(exp))
 			)
@@ -165,3 +167,12 @@ def line():
 	# search
 	#if engine_name == "wiki":
 	#	return wiki.search(exp)
+
+@search.route("/wiki")
+@login_required
+def wiki():
+	q = request.args.get("q")
+	if q:
+		return wiki_module.search(q)
+	else:
+		return render_template("search.html", engine="/wiki")
