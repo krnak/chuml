@@ -55,7 +55,8 @@ def add():
 
 		return ("Bookmark</br>"
 				+"<b>"+name+"</b> -> <a href="+url+">"+url+"</a>"
-				+"</br>with labels: "+", ".join(["#"+l.name for l in lbls])
+				+"</br>with labels: "+", ".join(
+					["<a href=\"/label/{}\">#{}</a>".format(l.id, l.name) for l in lbls])
 				+"</br>added.")
 
 	return "bookmark.add requires argment q"
