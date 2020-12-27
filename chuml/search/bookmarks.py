@@ -14,7 +14,7 @@ from chuml.utils import db
 from chuml.utils import crypto
 from chuml.search import labels
 from chuml.auth import access
-from chuml.models import Bookmark
+from chuml.models import Bookmark, Label
 
 bookmarks = Blueprint('bookmarks', __name__,
 	template_folder='templates',
@@ -33,7 +33,7 @@ def add():
 		print("[bookmarks]", query)
 		url   = query.pop()
 		if url[:4] != "http":
-			url = "https://" + url
+			url = "http://" + url
 		label_names = [label[1:] for label in query if label[0] == '#']
 		words       = [word  for word in query if word[0] != '#']
 		name = " ".join(words)
@@ -42,7 +42,7 @@ def add():
 
 		lbls = [] 
 		for label_name in label_names:
-			label = db.query("Label").filter_by(
+			label = db.query(Label).filter_by(
 				name=label_name,
 				author=current_user
 			).one_or_none()
@@ -51,11 +51,11 @@ def add():
 
 			lbls.append(label)
 
-		internal_add(name,url,lbls)
+		internal_add(name,url,current_user,lbls)
 
 		return ("Bookmark</br>"
-				+name+"-><a href="+url+">"+url+"</a>"
-				+"</br>with labels: "+str(label_names)
+				+"<b>"+name+"</b> -> <a href="+url+">"+url+"</a>"
+				+"</br>with labels: "+", ".join(["#"+l.name for l in lbls])
 				+"</br>added.")
 
 	return "bookmark.add requires argment q"
@@ -127,9 +127,12 @@ def internal_add(name, url, author, lbls=[], t=None):
 		updated_timestamp=t,
 		author=author
 	)
+
 	for label in lbls:
 		bm.labels.append(label)
 
+	print("======",bm.to_dict())
+	print("======", type(bm.labels))
 	db.add(bm)
 	db.commit()
 	return bm
