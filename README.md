@@ -1,5 +1,9 @@
 # CHUML PROJECT
 
+## important TODO:
+
+override engine  
+
 ## small TODO:
 
 rename file hiearchy
@@ -11,10 +15,25 @@ change forms
 access forms
 labels forms
 wtf forms imtegration
+edit mode
+
+unify search engines and bookmarks
 
 python-secrets integration
 
 dependencies list
+
+## big TODO:
+
+- blog (google keep bridge)
+- storage (google drive bridge)
+- email (gmail bridge)
+- contacts (google contacts bridge)
+- songs (zpevniky.com bridge)
+
+- doodle (how about czoodle)
+- whitelist
+- server search (in progress)
 
 ## Dependencies
 
@@ -27,17 +46,6 @@ syntax coloring
 sqlalchemy
 
 secrets
-
-## big TODO:
-
-- git
-- storage
-- blog
-- email
-- contacts
-- doodle
-- whitelist
-- server search
 
 ## ChumlNodes
 

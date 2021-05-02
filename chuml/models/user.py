@@ -9,8 +9,8 @@ class User(UserMixin,db.Base):
 	pasw = Column(String)
 	salt = Column(String)
 	
-	email = Column(String)
-	email_verified = Column(Boolean)
+	# email = Column(String)
+	# email_verified = Column(Boolean)
 
 	def get_id(self):
 		return self.id
@@ -23,9 +23,9 @@ class User(UserMixin,db.Base):
 			"id":    self.id,
 			"name":  self.name,
 			"pasw":  self.pasw,
-			"salt":  self.salt,
-			"email": self.email,
-			"email_verified": self.email_verified
+			"salt":  self.salt #,
+			#"email": self.email,
+			#"email_verified": self.email_verified
 		}
 
 
