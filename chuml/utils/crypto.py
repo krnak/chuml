@@ -56,6 +56,8 @@ get_random_secret = lambda : "".join(
 	[random.choice(b58string) for _ in range(24)])
 	#[secrets.choice(b58string) for _ in range(24)])
 
+get_random_iid = get_random_secret
+
 def require_secret(secret):
 	def decorator(func):
 		def wrapper(*args,**kwargs):

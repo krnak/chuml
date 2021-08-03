@@ -18,7 +18,7 @@ from chuml.models import Bookmark, Label
 
 bookmarks = Blueprint('bookmarks', __name__,
 	template_folder='templates',
-	url_prefix="/bookmarks")
+	url_prefix="/bookmark")
 
 #table = db.table("bookmarks")
 #labels_table = db.table("labels")
@@ -34,29 +34,24 @@ def add():
 		url   = query.pop()
 		if url[:4] != "http":
 			url = "http://" + url
-		label_names = [label[1:] for label in query if label[0] == '#']
-		words       = [word  for word in query if word[0] != '#']
+		label_name  = query[0]
+		words       = query[1:]
 		name = " ".join(words)
 		if not name:
 			name = get_page_title(url)
 
-		lbls = [] 
-		for label_name in label_names:
-			label = db.query(Label).filter_by(
-				name=label_name,
-				author=current_user
-			).one_or_none()
-			if not label:
-				label = labels.internal_add(label_name, current_user)
+		label = db.query(Label).filter_by(
+			name=label_name,
+			author=current_user
+		).one_or_none()
+		if not label:
+			label = labels.internal_add(label_name, current_user)
 
-			lbls.append(label)
-
-		internal_add(name,url,current_user,lbls)
+		internal_add(name,url,current_user,[label])
 
 		return ("Bookmark</br>"
 				+"<b>"+name+"</b> -> <a href="+url+">"+url+"</a>"
-				+"</br>with labels: "+", ".join(
-					["<a href=\"/label/{}\">#{}</a>".format(l.id, l.name) for l in lbls])
+				+"</br>with label <b>"+label_name+"</b>"
 				+"</br>added.")
 
 	return "bookmark.add requires argment q"
