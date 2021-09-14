@@ -1,4 +1,4 @@
-db_path: sqlite:////home/agi/code/chuml/db/database.db
+db_path: sqlite:////home/agi/code/chuml_db/database.db
 wiki_path: /home/agi/code/wiki
 admin_pasw: kkk
 guest_pasw: kkk
