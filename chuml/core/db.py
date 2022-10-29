@@ -2,13 +2,27 @@ import sqlalchemy
 from sqlalchemy import Column, Integer, String, \
 					Boolean, DateTime, Float, \
 					Table, ForeignKey, Text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, as_declarative, declared_attr
 from sqlalchemy.orm import sessionmaker, relationship, backref
 
 from chuml.core import config
 # engine = sqlalchemy.create_engine('sqlite:///:memory:', echo=True)
 engine = sqlalchemy.create_engine(config.db_path , echo=True)
-Base = declarative_base()
+
+def snakized(name):
+    snakized = [name[0].lower()]
+    for char in name[1:]:
+        snakized.append(char.lower())
+        if char.isupper():
+            snakized.append("_")
+    return "".join(snakized)
+
+@as_declarative()
+class Base:
+    @declared_attr
+    def __tablename__(cls):
+        return snakized(cls.__name__)
+
 Session = sessionmaker(bind=engine)
 session = Session()
 

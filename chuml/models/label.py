@@ -1,25 +1,20 @@
 from chuml.utils import db
-from chuml.models import node
+from chuml.models import node, gen_attributes
+from chuml.models.primitives import String
+
 
 class Label(node.Node):
-	__tablename__ = "labels"
-	id         = db.Column(db.Integer, db.ForeignKey("nodes.id"), primary_key=True)
-	name       = db.Column(db.String)
-	labeling   = db.relationship("Node",
-		secondary=node.nodes_labels_table,
-		back_populates="labels")
-	note       = db.Column(db.String)
+    gen_attributes(locals(), {
+        "name": String,
+    })
 
-	__mapper_args__ = {
-		'polymorphic_identity':'label'
-	}
+    labeling = db.relationship("Node",
+        secondary=node.nodes_labels_table,
+        back_populates="labels",
+    )
 
-	def __repr__(self):
-		return "<Label {}>".format(self.name)
+    def search(self, word):
+        return word in ('#' + str(self.name))
 
-	def to_dict(self):
-		return {
-			"name": self.name,
-			"note": self.note,
-			**super().to_dict()
-		}
+    def render_view(self):
+        return f"<div style=\"background: gray; margin: 1px 1px 1px 1px;\">{self.name}</div>"

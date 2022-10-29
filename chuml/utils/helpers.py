@@ -1,4 +1,5 @@
 from flask import request
+from chuml.auth import access
 
 def require_argument(argname, default):
 	def decorator(func):
@@ -12,3 +13,4 @@ def require_argument(argname, default):
 		wrapper.__name__ = func.__name__
 		return wrapper
 	return decorator
+

@@ -56,62 +56,6 @@ def add():
 
 	return "bookmark.add requires argment q"
 
-@bookmarks.route("/<id>/edit", methods=["GET"])
-@login_required
-def edit_get(id=0):
-	bm = db.query(Bookmark).get(id)
-	if not bm:
-		flash("Bookmark {} not found.".format(id))
-		return redirect(url_for('labels.index'))
-	
-	if access.access(bm) < access.EDIT:
-		return access.forbidden_page()
-
-	return render_template("edit_bookmark.html",
-		bm=bm)
-
-@bookmarks.route("/<id>/edit", methods=["POST"])
-@login_required
-def edit_post(id=0):
-	bm = db.query(Bookmark).get(id)
-	if not bm:
-		flash("Bookmark {} not found.".format(id))
-		return redirect(url_for('labels.index'))
-	
-	if access.access(bm) < access.EDIT:
-		return access.forbidden_page()
-
-	try:
-		action = get_arg("action")
-		if   action == "set_name":
-			bm.name = get_arg("name")
-			db.commit()
-			return "success: name set"
-		elif action == "set_url":
-			bm.url = get_arg("url")
-			db.commit()
-			return "success: url set"
-		elif action == "delete":
-			bm.labels.clear()
-			db.delete(bm)
-			db.commit()
-			return "success: deleted"
-		else:
-			return "nothing done"
-	except Exception as e:
-		print("===== bookmarks =====")
-		print(e)
-		print("==================")
-		db.rollback()
-		return str(e)
-
-def get_arg(name):
-	arg = request.form.get(name)
-	if not arg:
-		raise ValueError("argument `{}` required".format(name))
-	return arg
-
-
 def internal_add(name, url, author, lbls=[], t=None):
 	if t == None:
 		t = int(time.time())

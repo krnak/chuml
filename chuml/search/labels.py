@@ -94,57 +94,6 @@ def view(id=0):
 		signed=signed
 	)
 
-@labels.route("/<id>/edit", methods=["GET"])
-@login_required
-def edit_get(id=0):
-	label = db.query(Label).get(id)
-	if not label:
-		flash("Label {} not found.".format(id))
-		return redirect(url_for('labels.index'))
-	
-	if access.access(label) < access.EDIT:
-		return access.forbidden_page()
-
-	return render_template("edit_label.html",
-		label=label
-		)
-
-@labels.route("/<id>/edit", methods=["POST"])
-@login_required
-def edit_post(id=0):
-	label = db.query(Label).get(id)
-	if not label:
-		return "label {} not found".format(id)
-	
-	if access.access(label) < access.EDIT:
-		return "access forbidden to {}".format(id)
-
-	try:
-		action = get_arg("action")
-		if   action == "set_name":
-			label.name = get_arg("name")
-			db.commit()
-			return "success: name set"
-		elif action == "delete":
-			label.labels.clear()
-			db.delete(label)
-			db.commit()
-			return "success: deleted"
-		else:
-			return "nothing done"
-	except Exception as e:
-		print("===== labels =====")
-		print(e)
-		print("==================")
-		db.rollback()
-		return str(e)
-
-def get_arg(name):
-	arg = request.form.get(name)
-	if not arg:
-		raise ValueError("argument `{}` required".format(name))
-	return arg
-
 
 def internal_add(name,author,labels=[],t=None):
 	if t == None:

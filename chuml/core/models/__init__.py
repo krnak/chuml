@@ -1,10 +1,8 @@
 from chuml.utils import db
-from chuml.utils.db import Column, Integer, String, \
+from .db import Column, Integer, String, \
                         relationship, Base, ForeignKey, \
-                        Boolean, Float
-from chuml.models.utils import gen_attributes, snakized
-from flask_login import current_user
-import time
+                        Boolean, Float,
+                        gen_attributes, snakized
 
 nodes_labels_table = db.Table('nodes_labels', Base.metadata,
     Column('node_id', Integer, ForeignKey('nodes.id')),
@@ -13,19 +11,6 @@ nodes_labels_table = db.Table('nodes_labels', Base.metadata,
 
 class Node(Base):
     type = Column(String(20))
-    gen_attributes(locals(), {
-        #"author": Base._decl_class_registry.get("users", None),
-        "created_timestamp": Integer,
-        "updated_timestamp": Integer,
-        "attention": Float,
-    })
-
-    labels = relationship("Label",
-        secondary=nodes_labels_table,
-        back_populates="labeling"
-    )
-
-    accesses = db.relationship('Access', backref='node', lazy=True)
 
     @db.declared_attr
     def id(cls):
@@ -50,17 +35,12 @@ class Node(Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # self.author = current_user
-        self.created_timestamp = int(time.time())
-        self.updated_timestamp = self.created_timestamp
-        self.attention = 1
-
         db.commit()
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}>"
 
+    """
     def to_dict(self):
         raise NotImplementedError  # TODO
 
@@ -75,9 +55,7 @@ class Node(Base):
 
         # TODO: relationships
         return result
-
-    def comma_separated_labels(self):
-        return ", ".join([label.name for label in self.labels])
+    """
 
     """
     def render_view(self):
@@ -87,6 +65,7 @@ class Node(Base):
         return self.render_view() + "(edit)"
     """
 
+    """
     def render_view(self):
         lines = []
         for attr in self.__class__.attributes:
@@ -103,10 +82,14 @@ class Node(Base):
 
     def update(self, op):
         pass
+    """
 
+    """
     def search(self, word):
         return False
+    """
 
+    """
     def access(self):
         if current_user.name == "admin":
             return ADMIN
@@ -115,3 +98,12 @@ class Node(Base):
         #    return ADMIN  # TODO: depricate ???
 
         return max(a.allows() for a in self.accesses)
+    """
+
+class NodeDecorator(Base):
+    id =  Column(Integer, ForeignKey("nodes.id"), primary_key=True)
+    __abstract__ = True
+
+    @db.declared_attr
+    def __tablename__(cls):
+        return snakized(cls.__name__) + "s"

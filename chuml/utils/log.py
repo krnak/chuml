@@ -8,5 +8,5 @@ class Log(db.Base):
 	text = db.Column(db.Text)
 
 def log(text):
-	db.add(Log(text=text,time=int(time.time())))
+	db.add(Log(text=text, time=int(time.time())))
 	db.commit()

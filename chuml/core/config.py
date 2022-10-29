@@ -1,7 +1,7 @@
 import yaml
 import sys
 
-self = sys.modules[__name__]
+_self = sys.modules[__name__]
 
 with open("../config.txt", 'r') as stream:
     try:
@@ -10,4 +10,4 @@ with open("../config.txt", 'r') as stream:
         print(exc)
 
 for k, v in _data.items():
-	setattr(self, k, v)
+	setattr(_self, k, v)
